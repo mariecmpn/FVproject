@@ -1,5 +1,5 @@
 program scalaire_trafic
-    use iso_fortran_env
+    use numerics
     use initialisation_sauvegarde
     use schemas
     IMPLICIT NONE
@@ -11,7 +11,9 @@ program scalaire_trafic
     real(rp), dimension(:), allocatable :: U_O
     real(rp), dimension(:), allocatable :: U_N
     real(rp), dimension(:), allocatable :: Flux
-    integer :: condition, schema
+    !integer :: condition, schema
+    character(len = 1) :: condition
+    character(len = 2) :: schema
     integer :: Nb_iter = 0
 
     ! lecture des donnees du fichier donnees.dat
@@ -38,14 +40,16 @@ program scalaire_trafic
         date = date + dt
 
         ! calcul des flux
-        if (schema == 0) then
+        if (schema == 'LF') then
             call flux_LF(Ns, Flux, U_O, dt, dx)
-        else if (schema == 1) then
+        else if (schema == 'MR') then
             call flux_MR(Ns, Flux, U_O)
-        else if (schema == 2) then
+        else if (schema == 'GD') then
             call flux_GD(Ns, Flux, U_O)
-        else if (schema == 3) then
+        else if (schema == 'LW') then
             call flux_LW(Ns, Flux, U_O, dt, dx)
+        else if (schema == 'HL') then
+            call flux_HLL(Ns, Flux, U_O)
         end if
 
         ! update calcul de u_i^{n+1}
@@ -55,7 +59,7 @@ program scalaire_trafic
         end do
 
         ! Conditions aux limites
-        if (condition == 0) then 
+        if (condition == 'D') then 
             ! Dirichlet
             U_N(1) = U_O(1)
             U_N(Ns) = U_O(Ns)

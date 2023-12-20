@@ -1,4 +1,5 @@
 module schemas
+    use numerics
     use initialisation_sauvegarde
     IMPLICIT NONE
 
@@ -40,37 +41,9 @@ module schemas
         end do
     end subroutine flux_MR
 
-    !subroutine flux_GD (Ns, Flux, U_O)
-    ! FLUX POUR SCHEMA DE GODUNOV
-    !    integer, intent(in) :: Ns
-    !    real(rp), dimension(Ns), intent(inout) :: Flux
-    !    real(rp), dimension(Ns), intent(in) :: U_O
-    !    real(rp) :: vitesse
-    !    integer :: i
-
-    !    do i = 1,(Ns-1)
-    !        if (U_O(i) < U_O(i+1)) then ! cas d'une detente pour f convexe
-    !            if (a_f(U_O(i)) > 0._rp) then
-    !                Flux(i) = f(U_O(i))
-    !            else if (a_f(U_O(i+1)) < 0._rp) then
-    !                Flux(i) = f(U_O(i+1))
-    !            else
-    !                Flux(i) = a_inv(0._rp)
-    !            end if
-    !        else
-    !            vitesse = (f(U_O(i+1)) - f(U_O(i))) / (U_O(i+1) - U_O(i))
-    !            if (vitesse > 0._rp) then
-    !                Flux(i) = f(U_O(i))
-    !            else
-    !                Flux(i) = f(U_O(i+1))
-    !            end if
-    !        end if ! cas d'un choc pour f convexe
-    !    end do
-    !end subroutine flux_GD
-
 
     subroutine flux_GD (Ns, Flux, U_O)
-        ! FLUX POUR SCHEMA DE GODUNOV
+        ! FLUX POUR SCHEMA DE GODUNOV (si f est concave !)
             integer, intent(in) :: Ns
             real(rp), dimension(Ns), intent(inout) :: Flux
             real(rp), dimension(Ns), intent(in) :: U_O
@@ -86,7 +59,7 @@ module schemas
                     else
                         Flux(i) = a_inv(0._rp)
                     end if
-                else
+                else ! cas d'un choc pour f concave
                     vitesse = (f(U_O(i+1)) - f(U_O(i))) / (U_O(i+1) - U_O(i))
                     if (vitesse > 0._rp) then
                         Flux(i) = f(U_O(i))
@@ -99,7 +72,6 @@ module schemas
 
     subroutine flux_LW(Ns, Flux, U_O, dt, dx)
     ! FLUX POUR SCHEMA LAX-WENDROFF
-        IMPLICIT NONE
         real(rp), intent(in) :: dt, dx
         integer, intent(in) :: Ns
         real(rp), dimension(Ns), intent(inout) :: Flux
@@ -108,11 +80,37 @@ module schemas
         integer :: i
         real(rp) :: mid
 
-        Delta = (dx / dt) * 0.5_rp
+        Delta = (dx / dt) * 0.5_rp ! on calcule dx/2dt une fois 
         do i = 1,(Ns-1)
             mid = 0.5_rp*(U_O(i) + U_O(i+1))
             Flux(i) = 0.5_rp*(f(U_O(i)) + f(U_O(i+1))) - Delta * a_f(mid) * (U_O(i+1) - U_O(i))
         end do
     end subroutine flux_LW
+
+    subroutine flux_HLL(Ns, Flux, U_O)
+    ! FLUX POUR SCHEMA HLL
+        integer, intent(in) :: Ns
+        real(rp), dimension(Ns), intent(inout) :: Flux
+        real(rp), dimension(Ns), intent(in) :: U_O
+        integer :: i
+        real(rp) :: bl, br
+
+        do i=1,Ns-1
+            !bl = min(0._rp, a_f(U_O(i)) - U_O(i))
+            !br = max(0._rp, U_O(i+1)+a_f(U_O(i+1)))
+            bl = min(a_f(U_O(i)) - U_O(i), a_f(U_O(i+1)) - U_O(i+1))
+            br = max(a_f(U_O(i)) + U_O(i), a_f(U_O(i+1)) + U_O(i+1))
+            if (bl >= 0) then
+                Flux(i) = f(U_O(i))
+            else if (bl<0 .AND. br>=0) then
+                Flux(i) = (br*f(U_O(i))-bl*f(U_O(i+1))+(bl*br)*(U_O(i+1)-U_O(i)))/(br-bl)
+            else if (br < 0) then
+                Flux(i) = f(U_O(i+1))
+            else
+                write(6,*) 'Probleme de calcul de vitesse pour flux HLL'
+            end if
+        end do
+
+    end subroutine flux_HLL
 
 end module schemas

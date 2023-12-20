@@ -1,6 +1,0 @@
-0.0 1.0 :: n_deb, n_fin
-100  :: Ns (nb de cellules)
-0.5  :: CFL
-0.4  :: T_fin
-N :: N pour condition de Neumann, D pour condition de Dirichlet. Default: Neumann
-LW :: schema utilise: LF pour Lax-Friedrichs, MR pour Murman-Roe, GD pour Godunov, LW pour Lax-Wendroff

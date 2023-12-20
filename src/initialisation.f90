@@ -1,8 +1,6 @@
 module initialisation_sauvegarde
-    use iso_fortran_env
+    use numerics
     IMPLICIT NONE
-    integer, parameter :: rp = real64
-    real(rp), parameter :: pi = acos(-1.0_rp)
 
     contains 
 
@@ -10,11 +8,11 @@ module initialisation_sauvegarde
         IMPLICIT NONE
         real(rp) :: x
         if (x>=0. .AND. x<1.) then
-            initial = 0._rp
-        else if (x>=1. .AND. x<2.) then
-            initial = 2._rp
-        else if (x>=2.) then
             initial = 1._rp
+        else if (x>=1. .AND. x<2.) then
+            initial = 3._rp
+        else if (x>=2.) then
+            initial = 2._rp
         else 
             initial = 0._rp
         end if
@@ -28,9 +26,9 @@ module initialisation_sauvegarde
         real(rp), intent(inout) :: x_deb, x_fin
         real(rp), intent(inout) :: CFL
         real(rp), intent(inout) :: T_fin
-        character(len = 1) :: condition_lim
-        integer, intent(inout) :: condition, schema
-        character(len = 2) :: schema_use
+        character(len = 1), intent(inout) :: condition
+        !integer, intent(inout) :: condition, schema
+        character(len = 2), intent(inout) :: schema
 
         integer :: my_unit
 
@@ -40,29 +38,28 @@ module initialisation_sauvegarde
         read(my_unit, *) Ns
         read(my_unit, *) CFL
         read(my_unit, *) T_fin
-        read(my_unit, *) condition_lim
-        read(my_unit, *) schema_use
+        read(my_unit, *) condition
+        read(my_unit, *) schema
 
-        if (condition_lim == 'D') then
-            condition = 0
-        else if (condition_lim == 'N') then
-            condition = 1
-        else
-            condition = -1
+        !if (condition_lim == 'D') then
+        !    condition = 0
+        !else if (condition_lim == 'N') then
+        !    condition = 1
+        !else
+        !    condition = -1
+        !end if
+
+        if (schema == 'LF') then ! Lax-Friedrichs
+            write(6,*) 'Resolution par le schema de Lax-Friedrichs'
+        else if (schema == 'MR') then ! Murman-Roe
+            write(6,*) 'Resolution par le schema de Murman-Roe'
+        else if (schema == 'GD') then ! Godunov
+            write(6,*) 'Resolution par le schema de Godunov'
+        else if (schema == 'LW') then ! Lax-Wendroff
+            write(6,*) 'Resolution par le schema de Lax-Wendroff'
+        else if (schema == 'HL') then ! HLL
+            write(6,*) 'Resolution par le schema HLL'
         end if
-
-        if (schema_use == 'LF') then ! Lax-Friedrichs
-            schema = 0
-        else if (schema_use == 'MR') then ! Murman-Roe
-            schema = 1
-        else if (schema_use == 'GD') then ! Godunov
-            schema = 2
-        else if (schema_use == 'LW') then ! Lax-Wendroff
-            schema = 3
-        else
-            schema = 0
-        end if
-
         close(my_unit)
     end subroutine lecture_donnees
 
@@ -102,30 +99,15 @@ module initialisation_sauvegarde
         close(my_unit)
     end subroutine sauvegarde
 
-    !real(rp) function f(x) ! f pour Burgers
-    !    real(rp) :: x
-    !    f = x**2/2._rp
-    !end function f
-
     real(rp) function f(x) ! f pour trafic routier
         real(rp) :: x
         f = x*(1-x)
     end function f
 
-    !real(rp) function a_f(x) ! a = f' pour Burgers
-    !    real(rp) :: x
-    !    a_f = x
-    !end function a_f
-
     real(rp) function a_f(x) ! a = f' pour trafic routier
         real(rp) :: x
         a_f = 1._rp - 2._rp*x
     end function a_f
-
-    !real(rp) function a_inv(x) ! a^{-1} pour Burgers
-    !    real(rp) :: x
-    !    a_inv = x
-    !end function a_inv
 
     real(rp) function a_inv(x) ! a^{-1} pour trafic routier
         real(rp) :: x

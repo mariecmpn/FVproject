@@ -1,8 +1,6 @@
 module initialisation_sauvegarde_2d
-    use iso_fortran_env
+    use numerics
     IMPLICIT NONE
-    integer, parameter :: rp = real64 ! definition double precision
-    real(rp), parameter :: pi = acos(-1.0_rp) ! definition pi
 
     contains 
 
