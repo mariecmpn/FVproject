@@ -4,18 +4,27 @@ module initialisation_sauvegarde
 
     contains 
 
+    real(rp) function choc_det(x)
+        real(rp) :: x
+        if (x>=0. .AND. x<100.) then
+            choc_det = 1._rp
+        else if (x>=100. .AND. x<500.) then
+            choc_det = 2._rp
+        else 
+            choc_det = 3._rp
+        end if 
+    end function choc_det
+
     real(rp) function initial(x)
         IMPLICIT NONE
         real(rp) :: x
-        if (x>=0. .AND. x<1.) then
+        if (x>=0.) then
             initial = 1._rp
-        else if (x>=1. .AND. x<2.) then
-            initial = 3._rp
-        else if (x>=2.) then
-            initial = 2._rp
+        !else if (x>=1. .AND. x<3.) then
+        !    initial = 2._rp
         else 
-            initial = 0._rp
-        end if
+            initial = 0.5_rp
+        end if 
     end function initial
 
 
@@ -27,7 +36,6 @@ module initialisation_sauvegarde
         real(rp), intent(inout) :: CFL
         real(rp), intent(inout) :: T_fin
         character(len = 1), intent(inout) :: condition
-        !integer, intent(inout) :: condition, schema
         character(len = 2), intent(inout) :: schema
 
         integer :: my_unit
@@ -40,14 +48,6 @@ module initialisation_sauvegarde
         read(my_unit, *) T_fin
         read(my_unit, *) condition
         read(my_unit, *) schema
-
-        !if (condition_lim == 'D') then
-        !    condition = 0
-        !else if (condition_lim == 'N') then
-        !    condition = 1
-        !else
-        !    condition = -1
-        !end if
 
         if (schema == 'LF') then ! Lax-Friedrichs
             write(6,*) 'Resolution par le schema de Lax-Friedrichs'

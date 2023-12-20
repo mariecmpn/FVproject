@@ -19,7 +19,8 @@ program scalaire_trafic
     ! lecture des donnees du fichier donnees.dat
     call lecture_donnees('donnees.dat', x_deb, x_fin, Ns, CFL, T_fin, condition, schema)
 
-    dx = (x_fin - x_deb)/Ns
+    ! on calcule le pas en espace
+    dx = (x_fin - x_deb)/Ns 
 
     ! allocation memoire des tableaux
     allocate(U_O(1:Ns), U_N(1:Ns), Flux(1:(Ns-1)))
@@ -28,7 +29,7 @@ program scalaire_trafic
     call initialisation(U_O, Ns, x_deb, x_fin)
 
     ! boucle en temps
-    date = 0._rp
+    date = 0._rp ! on initialise la date a 0
     do while (date < T_fin)
         ! CFL
         a = U_O(1)
@@ -63,6 +64,9 @@ program scalaire_trafic
             ! Dirichlet
             U_N(1) = U_O(1)
             U_N(Ns) = U_O(Ns)
+        else if (condition == 'P') then
+            U_N(1) = U_O(1) - Delta*(Flux(1) - Flux(Ns-1))
+            U_N(Ns) = U_N(1)
         else ! par defaut on prend des conditions de Neumann
             U_N(1) = U_N(2)
             U_N(Ns) = U_N(Ns-1)
@@ -70,7 +74,7 @@ program scalaire_trafic
         
         !mise a jour
         U_O(1:Ns) = U_N(1:Ns)
-
+        ! On compte le nombre d'iterations
         Nb_iter = Nb_iter + 1
     end do
 
