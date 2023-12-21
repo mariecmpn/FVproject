@@ -28,16 +28,16 @@ module initialisation_sauvegarde
             else
                 choc_det = 2._rp
             end if 
-        else if (t>=0.5 .AND. t<0.25*(3*sqrt(5.)+7)) then
-            if (x < -3.*t+1) then
+        else if (t>=0.5 .AND. t<2.) then
+            if (x < -t-2*sqrt(2*t)+2) then
                 choc_det = 1._rp
-            else if (x>=-3.*t+1 .AND. x<t-3*sqrt(2*t)+2) then
+            else if (x>=-t-2*sqrt(2*t)+2 .AND. x<-3.*t+2) then
                 choc_det = 0.5_rp*(1 - (x-2)/t)
             else
                 choc_det = 2._rp
             end if 
         else 
-            if (x<-2.*t+2) then
+            if (x<-2.*t) then
                 choc_det = 1._rp
             else 
                 choc_det = 2._rp
@@ -72,7 +72,7 @@ module initialisation_sauvegarde
         else
             if (x<-5.*t) then
                 det_choc = 3._rp
-            else if (x>=-5.*t .AND. x<-3.*t+4.*sqrt(t)) then
+            else if (x>=-5.*t .AND. x<-3.*t+2.*sqrt(t)) then
                 det_choc = 0.5_rp*(1-(x/t))
             else 
                 det_choc = 2._rp
@@ -137,6 +137,8 @@ module initialisation_sauvegarde
             write(6,*) '2 si x>1'
         end if 
 
+        write(6,*)
+
         if (schema == 'LF') then ! Lax-Friedrichs
             write(6,*) 'Resolution par le schema de Lax-Friedrichs'
         else if (schema == 'MR') then ! Murman-Roe
@@ -148,6 +150,9 @@ module initialisation_sauvegarde
         else if (schema == 'HL') then ! HLL
             write(6,*) 'Resolution par le schema HLL'
         end if
+
+        write(6,*)
+
         close(my_unit)
     end subroutine lecture_donnees
 
@@ -202,5 +207,17 @@ module initialisation_sauvegarde
         real(rp) :: x
         a_inv = 0.5_rp*(1-x)
     end function a_inv
+
+    real(rp) function normeL2(Err, Ns)
+        integer :: Ns
+        real(rp), dimension(Ns) :: Err
+        integer :: i
+
+        normeL2 = 0._rp
+        do i = 1,Ns
+            normeL2 = normeL2+Err(i)**2
+        end do
+        normeL2 = sqrt(normeL2)
+    end function normeL2
 
 end module initialisation_sauvegarde

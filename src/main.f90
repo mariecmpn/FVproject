@@ -11,13 +11,14 @@ program scalaire_trafic
     real(rp), dimension(:), allocatable :: U_O
     real(rp), dimension(:), allocatable :: U_N
     real(rp), dimension(:), allocatable :: Flux
-    real(rp), dimension(:), allocatable :: U_ex
+    real(rp), dimension(:), allocatable :: U_ex, Err
     !integer :: condition, schema
     character(len = 1) :: condition
     character(len = 2) :: schema
     integer :: fonc
     integer :: Nb_iter = 0
     character(len = 14) :: namefileout
+    character(len = 68) :: commandline
 
     write(6,*) '------------------------------------------'
     write(6,*) '--------- Modele trafic routier ----------'
@@ -31,7 +32,7 @@ program scalaire_trafic
     dx = (x_fin - x_deb)/Ns 
 
     ! allocation memoire des tableaux
-    allocate(U_O(1:Ns), U_N(1:Ns), Flux(1:(Ns-1)), U_ex(1:Ns))
+    allocate(U_O(1:Ns), U_N(1:Ns), Flux(1:(Ns-1)), U_ex(1:Ns), Err(1:Ns))
 
     ! initialisation pour t = 0
     call initialisation(U_O, Ns, x_deb, x_fin, fonc)
@@ -86,22 +87,34 @@ program scalaire_trafic
         Nb_iter = Nb_iter + 1
     end do
 
-    ! Calcul solution exacte
+    ! Calcul solution exacte et de l'erreur
     do i = 1,Ns
         x = x_deb + i*(x_fin-x_deb)/Ns
         U_ex(i) = sol_ex(x, date, fonc)
+        Err(i) = abs(U_ex(i) - U_O(i))
     end do
 
+    write(6,*) 'Nombre d iterations', Nb_iter
+    write(6,*)
+    write(6,*) 'Erreur L2 relative entre solution approchee et solution exacte: ', normeL2(Err, Ns)/normeL2(U_ex,Ns)
+    write(6,*)
+
+    ! Enregistrement de la solution exacte et de la solution approchee
     namefileout(1:8) = 'solution'
     namefileout(9:10) = schema
     namefileout(11:14) = '.dat'
 
     write(6,*) 'Sauvegarde dans le fichier: ', namefileout
 
-    write(6,*) 'Nombre d iterations', Nb_iter
     call sauvegarde(namefileout, U_O, Ns, x_deb, x_fin)
     call sauvegarde('solution_ex.dat', U_ex, Ns, x_deb, x_fin)
 
-    deallocate(U_O, U_N, Flux, U_ex)
+    commandline(1:13) = "gnuplot plot "
+    commandline(14:27) = namefileout
+    commandline(28:68) = " with lines, 'solution_ex.dat' with lines"
+
+    !call execute_command_line(commandline)
+
+    deallocate(U_O, U_N, Flux, U_ex, Err)
 
 end program scalaire_trafic
