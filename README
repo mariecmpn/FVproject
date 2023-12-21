@@ -4,6 +4,16 @@ Etude de deux modèles de trafic routier
 Author: Marie COMPAIN
 
 CONTENU DU DOSSIER:
+- src/main.f90: programme principal pour la première partie du projet (modèle scalaire)
+- src/schemas.f90: module qui contient les procédurs pour les diférents schémas implémentés pour le scalaire
+- src/initialisation.f90: module pour les entrées/sorties, définition des fonctions utiles pour le scalaire (fonction initiale, exacte, f, a...)
+- src/numerics.f90: module pour la définition des constantes (double précision entre autre)
+- src/main_2d.f90: programme principal pour la deuxième partie du projet (modèle hyperbolique)
+- src/schemas_2d.f90: module qui contient les procédures pour les différents schémas implémentés pour le système
+- src/initialisation_2d.f90: module pour les entrées/sorties, définition des fonctions utiles pour le système
+- src/Makefile: fichier Makefile pour le projet (cf 'REGLES DE COMPILATION' pour les règles possibles)
+- donnees.dat: fichier de données d'entrée pour le scalaire (nombre de points de maillage, schéma utilisé, etc)
+- donnees_2d.dat: fichier de données d'entrée pour le système
 
 
 REGLES DE COMPILATION:
