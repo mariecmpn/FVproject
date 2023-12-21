@@ -1,10 +1,11 @@
 module schemas_2d
-    use initialisation_sauvegarde
+    use numerics
+    use initialisation_sauvegarde_2d
     IMPLICIT NONE
 
     contains
 
-    subroutine flux_LF(Ns, Flux, W_O, dt, dx, v_max, rho_max)
+    subroutine flux_LF_syst(Ns, Flux, W_O, dt, dx, v_max, rho_max)
     ! FLUX POUR SCHEMA DE LAX-FRIEDRICHS
         IMPLICIT NONE
         real(rp), intent(in) :: dt, dx, v_max, rho_max
@@ -20,14 +21,14 @@ module schemas_2d
         call F(F_ex1, W_O(:,1), v_max, rho_max)
         do i = 1,(Ns-1)
             call F(F_ex, W_O(:,(i+1)), v_max, rho_max)
-            Flux(1,i) = 0.5_rp*(F_ex(1) + F_ex1(1)) - Delta * (F_ex(1) - F_ex1(1))
-            Flux(2,i) = 0.5_rp*(F_ex(2) + F_ex1(2)) - Delta * (F_ex(2) - F_ex1(2))
+            Flux(1,i) = 0.5_rp*(F_ex(1) + F_ex1(1)) - Delta * (W_O(1,i+1) - W_O(1,i))
+            Flux(2,i) = 0.5_rp*(F_ex(2) + F_ex1(2)) - Delta * (W_O(2,i+1) - W_O(2,i))
             F_ex1(:) = F_ex(:)
         end do
-    end subroutine flux_LF
+    end subroutine flux_LF_syst
 
 
-    subroutine flux_GD (Ns, Flux, W_O)
+    subroutine flux_GD_syst (Ns, Flux, W_O)
     ! FLUX POUR SCHEMA DE GODUNOV
         integer, intent(in) :: Ns
         real(rp), dimension(2,Ns), intent(inout) :: Flux
@@ -55,11 +56,10 @@ module schemas_2d
             !        end if 
             !    end do
             !end do
-    end subroutine flux_GD
+    end subroutine flux_GD_syst
 
-    subroutine flux_RS (Ns, Flux, W_O, v_max, rho_max)
+    subroutine flux_RS_syst(Ns, Flux, W_O, v_max, rho_max)
     ! FLUX POUR LE SCHEMA DE RUSANOV
-        IMPLICIT NONE
         real(rp), intent(in) :: v_max, rho_max
         integer, intent(in) :: Ns
         real(rp), dimension(2,Ns), intent(inout) :: Flux
@@ -72,14 +72,15 @@ module schemas_2d
         do i = 1,(Ns-1)
             call F(F_ex, W_O(:,(i+1)), v_max, rho_max)
             ! max des valeurs propres
-            Delta = max(abs(W_O(2,i)/W_O(1,i)-W_O(1,i)*p(W_O(1,i), v_max, rho_max)), abs(W_O(2,i)/W_O(1,i)-W_O(1,i)*p(W_O(1,i), v_max, rho_max) - W_O(1,i)*p_prime(W_O(1,i), v_max, rho_max)))
-            Delta = max(Delta, abs(W_O(2,i+1)/W_O(1,i+1)-W_O(1,i+1)*p(W_O(1,i+1), v_max, rho_max)), abs(W_O(2,i+1)/W_O(1,i+1)-W_O(1,i+1)*p(W_O(1,i+1), v_max, rho_max) - W_O(1,i+1)*p_prime(W_O(1,i+1), v_max, rho_max)))
-            Flux(1,i) = 0.5_rp*(F_ex(1) + F_ex1(1)) - 0.5_rp*Delta * (F_ex(1) - F_ex1(1))
-            Flux(2,i) = 0.5_rp*(F_ex(2) + F_ex1(2)) - Delta * (F_ex(2) - F_ex1(2))
+            Delta = abs(vitesse(W_O(:,i), v_max, rho_max)-W_O(1,i)*p_prime(W_O(1,i),v_max,rho_max)) ! lambda_1 de W_L
+            Delta = max(Delta,abs(vitesse(W_O(:,i+1), v_max, rho_max)-W_O(1,i+1)*p_prime(W_O(1,i+1),v_max,rho_max))) ! lambda_1 de W_R
+            Delta = max(Delta, abs(vitesse(W_O(:,i), v_max, rho_max)))
+            Delta = max(Delta, abs(vitesse(W_O(:,i+1), v_max, rho_max)))
+            Flux(1,i) = 0.5_rp*(F_ex(1) + F_ex1(1)) - 0.5_rp*Delta * (W_O(1,i+1) - W_O(1,i))
+            Flux(2,i) = 0.5_rp*(F_ex(2) + F_ex1(2)) - 0.5_rp*Delta * (W_O(2,i+1) - W_O(2,i))
             F_ex1(:) = F_ex(:)
         end do
-
-    end subroutine flux_RS
+    end subroutine flux_RS_syst
 
 
 end module schemas_2d

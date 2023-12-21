@@ -1,7 +1,7 @@
 program systeme_trafic
-    use iso_fortran_env
-    use initialisation_sauvegarde
-    use schemas
+    use numerics
+    use initialisation_sauvegarde_2d
+    use schemas_2d
     IMPLICIT NONE
     real(rp) :: x_deb, x_fin, v_max, rho_max
     integer :: Ns
@@ -11,11 +11,17 @@ program systeme_trafic
     real(rp), dimension(:,:), allocatable :: W_O
     real(rp), dimension(:,:), allocatable :: W_N
     real(rp), dimension(:,:), allocatable :: Flux
-    integer :: condition, schema
+    character(len = 1) :: condition
+    character(len = 2) :: schema
     integer :: Nb_iter = 0
 
+    write(6,*) '------------------------------------------'
+    write(6,*) '--------- Modele trafic routier ----------'
+    write(6,*) '---------------- Systeme -----------------'
+    write(6,*) '------------------------------------------'
+
     ! lecture des donnees du fichier donnees.dat
-    call lecture_donnees('donnees.dat', x_deb, x_fin, Ns, CFL, T_fin, condition, schema, v_max, rho_max)
+    call lecture_donnees_syst('donnees_2d.dat', x_deb, x_fin, Ns, CFL, T_fin, condition, schema, v_max, rho_max)
 
     dx = (x_fin - x_deb)/Ns
 
@@ -23,9 +29,7 @@ program systeme_trafic
     allocate(W_O(2,1:Ns), W_N(2,1:Ns), Flux(2,1:(Ns-1)))
 
     ! initialisation pour t = 0
-    call initialisation(W_O, Ns, x_deb, x_fin) ! en variables primitives
-    ! donc on passe en variables conservatives
-    call prim_to_conserv(W_O, Ns,v_max, rho_max)
+    call initialisation_syst(W_O, Ns, x_deb, x_fin) ! en variables primitives
 
     ! boucle en temps
     date = 0._rp
@@ -39,17 +43,20 @@ program systeme_trafic
         dt = min(dt, T_fin - date)
         date = date + dt
 
+
         ! on etait en variables primitives donc on passe en variables conservatives
         call prim_to_conserv(W_O, Ns, v_max, rho_max)
         ! calcul des flux
-        if (schema == 0) then
-            call flux_LF(Ns, Flux, W_O, dt, dx, v_max, rho_max)
-        else if (schema == 1) then
-            call flux_MR(Ns, Flux, W_O)
-        else if (schema == 2) then
-            call flux_GD(Ns, Flux, W_O)
-        else if (schema == 3) then
-            call flux_LW(Ns, Flux, W_O, dt, dx)
+        if (schema == 'LF') then
+            call flux_LF_syst(Ns, Flux, W_O, dt, dx, v_max, rho_max)
+        else if (schema == 'RS') then
+            call flux_RS_syst(Ns, Flux, W_O, v_max, rho_max)
+        !else if (schema == 1) then
+        !    call flux_MR(Ns, Flux, W_O)
+        !else if (schema == 2) then
+        !    call flux_GD(Ns, Flux, W_O)
+        !else if (schema == 3) then
+        !   call flux_LW(Ns, Flux, W_O, dt, dx)
         end if
 
         ! update calcul de u_i^{n+1}
@@ -60,19 +67,19 @@ program systeme_trafic
         end do
 
         ! Conditions aux limites
-        if (condition == 0) then 
+        if (condition == 'D') then 
             ! Dirichlet
             W_N(1,1) = W_O(1,1)
             W_N(1,Ns) = W_O(1,Ns)
             W_N(2,1) = W_O(2,1)
             W_N(2,Ns) = W_O(2,Ns)
         else ! par defaut on prend des conditions de Neumann
-            !W_N(1,1) = W_N(1,2)
-            !W_N(1,Ns) = W_N(1,Ns-1)
-            !W_N(2,1) = W_N(2,2)
-            !W_N(2,Ns) = W_N(2,Ns-1)
-            W_N(:,1) = W_O(:,1) - (dt/dx)* (Flux(:,1) - Flux(:,(Ns-1)))
-            W_N(:,Ns) = W_N(:,1)
+            W_N(1,1) = W_N(1,2)
+            W_N(1,Ns) = W_N(1,Ns-1)
+            W_N(2,1) = W_N(2,2)
+            W_N(2,Ns) = W_N(2,Ns-1)
+            !W_N(:,1) = W_O(:,1) - (dt/dx)* (Flux(:,1) - Flux(:,(Ns-1)))
+            !W_N(:,Ns) = W_N(:,1)
         end if
         
         !mise a jour
@@ -82,13 +89,13 @@ program systeme_trafic
         Nb_iter = Nb_iter + 1
 
         ! on etait en variables conservatives donc on passe en variables primitives pour le calcul de la CFL, ou pour la sauvegarde des donnees si derniere iteration
-        call prim_to_conserv(W_O, Ns, v_max, rho_max)
+        call conserv_to_prim(W_O, Ns, v_max, rho_max)
     end do
 
     write(6,*) 'Nombre d iterations', Nb_iter
     
     ! on sauvegarde les resultats pour t = T_fin
-    call sauvegarde('solution_rho.dat','solution_u.dat', W_O, Ns, x_deb, x_fin)
+    call sauvegarde_syst('solution_rho.dat','solution_u.dat', W_O, Ns, x_deb, x_fin)
 
     deallocate(W_O, W_N, Flux)
 

@@ -36,7 +36,6 @@ module schemas
             else
                 vitesse = (f(U_O(i+1))- f(U_O(i)))/(U_O(i+1) - U_O(i))
             end if
-
             Flux(i) = 0.5_rp*(f(U_O(i)) + f(U_O(i+1))) - 0.5_rp*abs(vitesse)*(U_O(i+1) - U_O(i))
         end do
     end subroutine flux_MR
@@ -83,7 +82,11 @@ module schemas
         Delta = (dx / dt) * 0.5_rp ! on calcule dx/2dt une fois 
         do i = 1,(Ns-1)
             mid = 0.5_rp*(U_O(i) + U_O(i+1))
-            Flux(i) = 0.5_rp*(f(U_O(i)) + f(U_O(i+1))) - Delta * a_f(mid) * (U_O(i+1) - U_O(i))
+            if (a_f(mid) /= 0) then
+                Flux(i) = 0.5_rp*(f(U_O(i)) + f(U_O(i+1))) - Delta * a_f(mid) * (U_O(i+1) - U_O(i))
+            else 
+                Flux(i) = 0.5_rp*(f(U_O(i)) + f(U_O(i+1))) - Delta * (U_O(i+1) - U_O(i))
+            end if 
         end do
     end subroutine flux_LW
 
