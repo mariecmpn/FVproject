@@ -3,7 +3,7 @@ program scalaire_trafic
     use initialisation_sauvegarde
     use schemas
     IMPLICIT NONE
-    real(rp) :: x_deb, x_fin
+    real(rp) :: x_deb, x_fin, x
     integer :: Ns
     real(rp) :: CFL, T_fin, date, dt, dx
     real(rp) :: a, Delta
@@ -11,22 +11,30 @@ program scalaire_trafic
     real(rp), dimension(:), allocatable :: U_O
     real(rp), dimension(:), allocatable :: U_N
     real(rp), dimension(:), allocatable :: Flux
+    real(rp), dimension(:), allocatable :: U_ex
     !integer :: condition, schema
     character(len = 1) :: condition
     character(len = 2) :: schema
+    integer :: fonc
     integer :: Nb_iter = 0
+    character(len = 14) :: namefileout
+
+    write(6,*) '------------------------------------------'
+    write(6,*) '--------- Modele trafic routier ----------'
+    write(6,*) '---------------- Scalaire ----------------'
+    write(6,*) '------------------------------------------'
 
     ! lecture des donnees du fichier donnees.dat
-    call lecture_donnees('donnees.dat', x_deb, x_fin, Ns, CFL, T_fin, condition, schema)
+    call lecture_donnees('donnees.dat', x_deb, x_fin, Ns, CFL, T_fin, condition, schema, fonc)
 
     ! on calcule le pas en espace
     dx = (x_fin - x_deb)/Ns 
 
     ! allocation memoire des tableaux
-    allocate(U_O(1:Ns), U_N(1:Ns), Flux(1:(Ns-1)))
+    allocate(U_O(1:Ns), U_N(1:Ns), Flux(1:(Ns-1)), U_ex(1:Ns))
 
     ! initialisation pour t = 0
-    call initialisation(U_O, Ns, x_deb, x_fin)
+    call initialisation(U_O, Ns, x_deb, x_fin, fonc)
 
     ! boucle en temps
     date = 0._rp ! on initialise la date a 0
@@ -78,9 +86,22 @@ program scalaire_trafic
         Nb_iter = Nb_iter + 1
     end do
 
-    write(6,*) 'Nombre d iterations', Nb_iter
-    call sauvegarde('solution.dat', U_O, Ns, x_deb, x_fin)
+    ! Calcul solution exacte
+    do i = 1,Ns
+        x = x_deb + i*(x_fin-x_deb)/Ns
+        U_ex(i) = sol_ex(x, date, fonc)
+    end do
 
-    deallocate(U_O, U_N, Flux)
+    namefileout(1:8) = 'solution'
+    namefileout(9:10) = schema
+    namefileout(11:14) = '.dat'
+
+    write(6,*) 'Sauvegarde dans le fichier: ', namefileout
+
+    write(6,*) 'Nombre d iterations', Nb_iter
+    call sauvegarde(namefileout, U_O, Ns, x_deb, x_fin)
+    call sauvegarde('solution_ex.dat', U_ex, Ns, x_deb, x_fin)
+
+    deallocate(U_O, U_N, Flux, U_ex)
 
 end program scalaire_trafic

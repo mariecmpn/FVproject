@@ -110,7 +110,36 @@ module schemas
                 write(6,*) 'Probleme de calcul de vitesse pour flux HLL'
             end if
         end do
-
     end subroutine flux_HLL
+
+    real(rp) function minmod(sigma_l, sigma_r)
+        real(rp) :: sigma_l, sigma_r
+        if (sigma_l >= 0 .AND. sigma_r >= 0.) then
+            minmod = min(sigma_l, sigma_r)
+        else if (sigma_l < 0 .AND. sigma_r < 0.) then
+            minmod = max(sigma_l, sigma_r)
+        else
+            minmod = 0._rp
+        end if
+    end function minmod
+
+    subroutine MUSCL(Ns, U_O, U_plus, U_moins, dx)
+        integer, intent(in) :: Ns
+        real(rp), intent(in) :: dx
+        real(rp), dimension(Ns), intent(in) :: U_O 
+        real(rp), dimension(Ns), intent(out) :: U_plus
+        real(rp), dimension(Ns), intent(out) :: U_moins
+        integer :: i
+        real(rp) :: sigmal, sigmar, Delta, sigma
+
+        Delta = 1._rp/dx
+        do i =2,Ns-1
+            sigmal = (U_O(i)-U_O(i-1))*Delta
+            sigmar = (U_O(i+1)-U_O(i))*Delta
+            sigma = minmod(sigmal, sigmar)
+            U_plus(i) = U_O(i) + sigma*0.5_rp*dx
+            U_moins(i) = U_O(i) + sigma*0.5_rp*dx
+        end do 
+    end subroutine MUSCL
 
 end module schemas
