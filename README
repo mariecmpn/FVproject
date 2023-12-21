@@ -20,5 +20,5 @@ REGLES DE COMPILATION:
 Pour la compilation, il faut aller dans le dossier src et faire "make <regle>". Pour les règles possibles, on a:
 - trafic_scalaire: Règle de compilation pour la première partie du projet
 - trafic_system: Règle de compilation pour la deuxième partie du projet
+- clean: pour effacer les fichiers binaires et les fichiers exécutables
 Les fichiers exécutables seront stockés dans le dossier parent de src. Les fichiers binaires seront stockés dans bin.
-Pour effacer les fichiers binaires et les fichiers exécutables, il faut faire "make clean" dans le dossier src.
