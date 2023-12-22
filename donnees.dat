@@ -3,5 +3,5 @@
 0.5  :: CFL
 2.1  :: T_fin
 N :: N pour condition de Neumann, D pour condition de Dirichlet, P pour periodique. Default: Neumann
-RS :: schema utilise: LF pour Lax-Friedrichs, MR pour Murman-Roe, GD pour Godunov, LW pour Lax-Wendroff, HL pour HLL
+HL :: schema utilise: LF pour Lax-Friedrichs, MR pour Murman-Roe, GD pour Godunov, LW pour Lax-Wendroff, HL pour HLL
 1  :: fonction initiale choisie: 1 => 1 si x<1, 3 si 1<x<2, 2 sinon; 2 => 3 si x<0, 1 si 0<x<1, 2 sinon

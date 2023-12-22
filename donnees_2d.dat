@@ -3,6 +3,6 @@
 0.5  :: CFL
 0.1  :: T_fin
 N :: N pour condition de Neumann, D pour condition de Dirichlet, P pour periodique. Default: Neumann
-RS :: schema utilise: LF pour Lax-Friedrichs, RS pour Rusanov
+HL :: schema utilise: LF pour Lax-Friedrichs, RS pour Rusanov, HL pour le schema HLL
 4.0 :: rho_max
 5.0 :: v_max

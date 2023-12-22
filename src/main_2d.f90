@@ -51,6 +51,8 @@ program systeme_trafic
             call flux_LF_syst(Ns, Flux, W_O, dt, dx, v_max, rho_max)
         else if (schema == 'RS') then
             call flux_RS_syst(Ns, Flux, W_O, v_max, rho_max)
+        else if (schema == 'HL') then
+            call flux_HLL_syst(Ns, Flux, W_O, v_max, rho_max)
         !else if (schema == 1) then
         !    call flux_MR(Ns, Flux, W_O)
         !else if (schema == 2) then
