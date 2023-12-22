@@ -4,7 +4,9 @@ module initialisation_sauvegarde
 
     contains 
 
-    real(rp) function choc_det0(x)
+    ! Fonctions initiales et exactes
+
+    real(rp) function choc_det0(x) ! fonction initiale pour le cas choc/detente
         real(rp) :: x
         if (x<1.) then
             choc_det0 = 1._rp
@@ -15,7 +17,7 @@ module initialisation_sauvegarde
         end if 
     end function choc_det0
 
-    real(rp) function choc_det(x,t)
+    real(rp) function choc_det(x,t) ! solution exacte pour le cas choc/detente
         real(rp) :: x,t
 
         if (t< 0.5) then 
@@ -45,7 +47,7 @@ module initialisation_sauvegarde
         end if
     end function choc_det
 
-    real(rp) function det_choc0(x)
+    real(rp) function det_choc0(x) ! fonction initiale pour le cas detente/choc
         real(rp) :: x
         if (x<0.) then 
             det_choc0 = 3._rp
@@ -56,7 +58,7 @@ module initialisation_sauvegarde
         end if 
     end function det_choc0
 
-    real(rp) function det_choc(x,t)
+    real(rp) function det_choc(x,t) ! solution exacte pour le cas detente/choc
         real(rp) :: x,t
 
         if (t<1.) then
@@ -81,6 +83,7 @@ module initialisation_sauvegarde
     end function det_choc
 
     real(rp) function initial(x, fonc)
+        ! fonction initiale en fonction de fonc
         real(rp) :: x
         integer :: fonc
         if (fonc == 1) then
@@ -91,6 +94,7 @@ module initialisation_sauvegarde
     end function initial
 
     real(rp) function sol_ex(x, t, fonc)
+        ! solution exacte en fonction de fonc
         real(rp) :: x,t
         integer :: fonc
 
@@ -101,17 +105,19 @@ module initialisation_sauvegarde
         end if 
     end function sol_ex
 
+    ! Lecture des donnees, initialisation et sauvegarde 
 
     subroutine lecture_donnees(file_name, x_deb, x_fin, Ns, CFL, T_fin, condition, schema, fonc)
+        ! Subroutine pour recuperer les donnees du fichier file_name
         IMPLICIT NONE
-        character(len = *), intent(in) :: file_name
-        integer, intent(inout) :: Ns
-        real(rp), intent(inout) :: x_deb, x_fin
-        real(rp), intent(inout) :: CFL
-        real(rp), intent(inout) :: T_fin
-        character(len = 1), intent(inout) :: condition
-        character(len = 2), intent(inout) :: schema
-        integer, intent(inout) :: fonc
+        character(len = *), intent(in) :: file_name ! nom du fichier a ouvrir
+        integer, intent(inout) :: Ns ! nombre de cellules
+        real(rp), intent(inout) :: x_deb, x_fin ! debut et fin des x
+        real(rp), intent(inout) :: CFL ! condition CFL
+        real(rp), intent(inout) :: T_fin ! temps final
+        character(len = 1), intent(inout) :: condition ! condition aux bords
+        character(len = 2), intent(inout) :: schema ! schema utilise
+        integer, intent(inout) :: fonc ! fonction initiale utilisee
 
         integer :: my_unit
 
@@ -157,11 +163,12 @@ module initialisation_sauvegarde
     end subroutine lecture_donnees
 
     subroutine initialisation(U_O, Ns, x_deb, x_fin, fonc)
+        ! suboutine pour initialiser le probleme
         IMPLICIT NONE
-        integer, intent(in) :: Ns
-        real(rp), dimension(1:Ns), intent(inout) :: U_O
-        real(rp), intent(in) :: x_deb, x_fin
-        integer, intent(in) :: fonc
+        integer, intent(in) :: Ns ! nmbre de cellules
+        real(rp), dimension(1:Ns), intent(inout) :: U_O ! vecteur qu'on initialise
+        real(rp), intent(in) :: x_deb, x_fin ! debut et fin des x
+        integer, intent(in) :: fonc ! fonction initiale a utiliser
         real(rp) :: x
         integer :: i
         real(rp) :: delta
@@ -174,13 +181,14 @@ module initialisation_sauvegarde
     end subroutine initialisation
 
     subroutine sauvegarde(file_name, U_O, Ns, x_deb, x_fin)
+        ! subroutine pour sauvegarde les solutions du probleme
         IMPLICIT NONE
-        character(len = *), intent(in) :: file_name
-        integer, intent(in) :: Ns
-        real(rp), dimension(1:Ns), intent(in) :: U_O
-        real(rp), intent(in) :: x_deb, x_fin
-        real(rp) :: x
-        integer :: i
+        character(len = *), intent(in) :: file_name ! nom du fichier de sortie
+        integer, intent(in) :: Ns ! nombre de cellules
+        real(rp), dimension(1:Ns), intent(in) :: U_O ! vecteur a enregistrer
+        real(rp), intent(in) :: x_deb, x_fin ! debut et fin des x
+        real(rp) :: x ! pour calculer x_i
+        integer :: i ! pour boucle do
         integer :: my_unit
 
         open(newunit = my_unit, file = file_name, action = 'write', form = 'formatted', status = 'unknown')
@@ -192,6 +200,8 @@ module initialisation_sauvegarde
 
         close(my_unit)
     end subroutine sauvegarde
+
+    ! Fonctions du probleme: f, a, a^-1
 
     real(rp) function f(x) ! f pour trafic routier
         real(rp) :: x
@@ -209,6 +219,7 @@ module initialisation_sauvegarde
     end function a_inv
 
     real(rp) function normeL2(Err, Ns)
+        ! norme L^2 d'un vecteur
         integer :: Ns
         real(rp), dimension(Ns) :: Err
         integer :: i

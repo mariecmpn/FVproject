@@ -42,32 +42,32 @@ module schemas
 
 
     subroutine flux_GD (Ns, Flux, U_O)
-        ! FLUX POUR SCHEMA DE GODUNOV (si f est concave !)
-            integer, intent(in) :: Ns
-            real(rp), dimension(Ns), intent(inout) :: Flux
-            real(rp), dimension(Ns), intent(in) :: U_O
-            real(rp) :: vitesse
-            integer :: i
+    ! FLUX POUR SCHEMA DE GODUNOV (si f est concave !)
+        integer, intent(in) :: Ns
+        real(rp), dimension(Ns), intent(inout) :: Flux
+        real(rp), dimension(Ns), intent(in) :: U_O
+        real(rp) :: vitesse
+        integer :: i
     
-            do i = 1,(Ns-1)
-                if (U_O(i) > U_O(i+1)) then ! cas d'une detente pour f concave
-                    if (a_f(U_O(i)) > 0._rp) then
-                        Flux(i) = f(U_O(i))
-                    else if (a_f(U_O(i+1)) < 0._rp) then
-                        Flux(i) = f(U_O(i+1))
-                    else
-                        Flux(i) = a_inv(0._rp)
-                    end if
-                else ! cas d'un choc pour f concave
-                    vitesse = (f(U_O(i+1)) - f(U_O(i))) / (U_O(i+1) - U_O(i))
-                    if (vitesse > 0._rp) then
-                        Flux(i) = f(U_O(i))
-                    else
-                        Flux(i) = f(U_O(i+1))
-                    end if
-                end if 
-            end do
-        end subroutine flux_GD
+        do i = 1,(Ns-1)
+            if (U_O(i) > U_O(i+1)) then ! cas d'une detente pour f concave
+                if (a_f(U_O(i)) > 0._rp) then
+                    Flux(i) = f(U_O(i))
+                else if (a_f(U_O(i+1)) < 0._rp) then
+                    Flux(i) = f(U_O(i+1))
+                else
+                    Flux(i) = a_inv(0._rp)
+                end if
+            else ! cas d'un choc pour f concave
+                vitesse = (f(U_O(i+1)) - f(U_O(i))) / (U_O(i+1) - U_O(i))
+                if (vitesse > 0._rp) then
+                    Flux(i) = f(U_O(i))
+                else
+                    Flux(i) = f(U_O(i+1))
+                end if
+            end if 
+        end do
+    end subroutine flux_GD
 
     subroutine flux_LW(Ns, Flux, U_O, dt, dx)
     ! FLUX POUR SCHEMA LAX-WENDROFF
@@ -75,18 +75,19 @@ module schemas
         integer, intent(in) :: Ns
         real(rp), dimension(Ns), intent(inout) :: Flux
         real(rp), dimension(Ns), intent(in) :: U_O
-        real(rp) :: Delta
+        real(rp) :: Delta, coef
         integer :: i
         real(rp) :: mid
 
         Delta = (dx / dt) * 0.5_rp ! on calcule dx/2dt une fois 
         do i = 1,(Ns-1)
             mid = 0.5_rp*(U_O(i) + U_O(i+1))
-            if (a_f(mid) /= 0) then
-                Flux(i) = 0.5_rp*(f(U_O(i)) + f(U_O(i+1))) - Delta * a_f(mid) * (U_O(i+1) - U_O(i))
-            else 
-                Flux(i) = 0.5_rp*(f(U_O(i)) + f(U_O(i+1))) - Delta * (U_O(i+1) - U_O(i))
-            end if 
+            if (a_f(mid) /= 0.) then
+                coef = a_f(mid)
+            else ! points soniques
+                coef = (f(U_O(i+1))- f(U_O(i)))/(U_O(i+1) - U_O(i))
+            end if
+            Flux(i) = 0.5_rp*(f(U_O(i)) + f(U_O(i+1))) - Delta * coef * (f(U_O(i+1)) - f(U_O(i)))
         end do
     end subroutine flux_LW
 

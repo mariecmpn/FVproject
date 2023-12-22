@@ -6,13 +6,15 @@ program systeme_trafic
     real(rp) :: x_deb, x_fin, v_max, rho_max
     integer :: Ns
     real(rp) :: CFL, T_fin, date, dt, dx
-    real(rp) :: a, Delta
+    real(rp) :: a, Delta, x
     integer :: i
     real(rp), dimension(:,:), allocatable :: W_O
     real(rp), dimension(:,:), allocatable :: W_N
     real(rp), dimension(:,:), allocatable :: Flux
+    real(rp), dimension(:,:), allocatable :: W_ex
     character(len = 1) :: condition
     character(len = 2) :: schema
+    integer :: fonc
     integer :: Nb_iter = 0
 
     write(6,*) '------------------------------------------'
@@ -21,15 +23,15 @@ program systeme_trafic
     write(6,*) '------------------------------------------'
 
     ! lecture des donnees du fichier donnees.dat
-    call lecture_donnees_syst('donnees_2d.dat', x_deb, x_fin, Ns, CFL, T_fin, condition, schema, v_max, rho_max)
+    call lecture_donnees_syst('donnees_2d.dat', x_deb, x_fin, Ns, CFL, T_fin, condition, schema, v_max, rho_max, fonc)
 
     dx = (x_fin - x_deb)/Ns
 
     ! allocation memoire des tableaux
-    allocate(W_O(2,1:Ns), W_N(2,1:Ns), Flux(2,1:(Ns-1)))
+    allocate(W_O(2,1:Ns), W_N(2,1:Ns), Flux(2,1:(Ns-1)), W_ex(2,1:Ns))
 
     ! initialisation pour t = 0
-    call initialisation_syst(W_O, Ns, x_deb, x_fin) ! en variables primitives
+    call initialisation_syst(W_O, Ns, x_deb, x_fin, fonc) ! en variables primitives
 
     ! boucle en temps
     date = 0._rp
@@ -94,10 +96,20 @@ program systeme_trafic
         call conserv_to_prim(W_O, Ns, v_max, rho_max)
     end do
 
+    ! Calcul solution exacte et de l'erreur
+    do i = 1,Ns
+        x = x_deb + i*(x_fin-x_deb)/Ns
+        W_ex(:,i) = sol_ex_syst(x, date, fonc, v_max, rho_max)
+        !Err(i) = abs(U_ex(i) - U_O(i))
+    end do
+
     write(6,*) 'Nombre d iterations', Nb_iter
     
     ! on sauvegarde les resultats pour t = T_fin
     call sauvegarde_syst('solution_rho.dat','solution_u.dat', W_O, Ns, x_deb, x_fin)
+
+    ! on sauvegarde la fonction exacte pour t = T_fin
+    call sauvegarde_syst('solution_rho_ex.dat', 'solution_u_ex.dat', W_ex, Ns, x_deb, x_fin)
 
     deallocate(W_O, W_N, Flux)
 
