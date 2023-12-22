@@ -102,14 +102,14 @@ module initialisation_sauvegarde_2d
             ur = initial_u(1._rp,2)
             rhol = initial_rho(-1._rp,2)
             rhor = initial_rho(1._rp,2)
-            if (x<(ul-4.*(v_max/rho_max)*rhol**2)*t) then ! avant la detente
+            if (x<(ul-2.*(v_max/rho_max)*rhol**2)*t) then ! avant la detente
                 sol_ex_syst(1) = rhol
                 sol_ex_syst(2) = ul
-            else if (x>=(ul-(4.*v_max/rho_max)*rhol**2)*t .AND. x<(ul+(4.*v_max/rho_max)*rhol**2)*t) then ! dans la detente
+            else if (x>=(ul-(2.*v_max/rho_max)*rhol**2)*t .AND. x<(6.*ur-5.*ul-(2.*v_max/rho_max)*rhol**2)*t) then ! dans la detente
                 rho = sqrt(rho_max/(3.*v_max)*(ul-(x/t))+rhol**2/3.)
                 sol_ex_syst(1) = rho
                 sol_ex_syst(2) = ul+(v_max/rho_max)*rho**2-(1./3.)*(ul-(x/t))-(v_max/(3.*rho_max))*rhol**2
-            else if (x>=(ul+(4.*v_max/rho_max)*rhol**2)*t .AND. x<ur*t) then ! entre la detente et le contact
+            else if (x>=(6.*ur-5.*ul-(2.*v_max/rho_max)*rhol**2)*t .AND. x<ur*t) then ! entre la detente et le contact
                 rho = sqrt(rhol**2 + rho_max/v_max*(ul-ur))
                 sol_ex_syst(1) = rho
                 sol_ex_syst(2) = ur
@@ -194,7 +194,7 @@ module initialisation_sauvegarde_2d
     end subroutine initialisation_syst
 
 
-    subroutine sauvegarde_syst(file_name_u, file_name_rho, W_O, Ns, x_deb, x_fin)
+    subroutine sauvegarde_syst(file_name_rho, file_name_u, W_O, Ns, x_deb, x_fin)
         ! subroutine pour sauvegarde les solutions du probleme
         IMPLICIT NONE
         character(len = *), intent(in) :: file_name_u, file_name_rho ! noms des fichiers de sortie
@@ -318,6 +318,19 @@ module initialisation_sauvegarde_2d
         u = vitesse(W(1:2), v_max, rho_max) ! on calcule u car on est en variables conservatives
         F_ex(:) = u * W(:) ! on multiplie par u car u est 
     end subroutine F
+
+    real(rp) function normeL2_2(Err, Ns)
+        ! norme L^2 d'un vecteur
+        integer :: Ns
+        real(rp), dimension(Ns) :: Err
+        integer :: i
+
+        normeL2_2 = 0._rp
+        do i = 1,Ns
+            normeL2_2 = normeL2_2+Err(i)**2
+        end do
+        normeL2_2 = sqrt(normeL2_2)
+    end function normeL2_2
 
 
 end module initialisation_sauvegarde_2d

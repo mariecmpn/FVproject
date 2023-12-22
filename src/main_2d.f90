@@ -12,6 +12,7 @@ program systeme_trafic
     real(rp), dimension(:,:), allocatable :: W_N
     real(rp), dimension(:,:), allocatable :: Flux
     real(rp), dimension(:,:), allocatable :: W_ex
+    real(rp), dimension(:), allocatable :: Err_u, Err_rho
     character(len = 1) :: condition
     character(len = 2) :: schema
     integer :: fonc
@@ -28,7 +29,7 @@ program systeme_trafic
     dx = (x_fin - x_deb)/Ns
 
     ! allocation memoire des tableaux
-    allocate(W_O(2,1:Ns), W_N(2,1:Ns), Flux(2,1:(Ns-1)), W_ex(2,1:Ns))
+    allocate(W_O(2,1:Ns), W_N(2,1:Ns), Flux(2,1:(Ns-1)), W_ex(2,1:Ns), Err_u(Ns), Err_rho(Ns))
 
     ! initialisation pour t = 0
     call initialisation_syst(W_O, Ns, x_deb, x_fin, fonc) ! en variables primitives
@@ -100,10 +101,16 @@ program systeme_trafic
     do i = 1,Ns
         x = x_deb + i*(x_fin-x_deb)/Ns
         W_ex(:,i) = sol_ex_syst(x, date, fonc, v_max, rho_max)
-        !Err(i) = abs(U_ex(i) - U_O(i))
+        Err_rho(i) = abs(W_ex(1,i) - W_O(1,i))
+        Err_u(i) = abs(W_ex(2,i) - W_O(2,i))
     end do
 
     write(6,*) 'Nombre d iterations', Nb_iter
+    write(6,*)
+    write(6,*) 'Erreurs L2 relatives entre solution approchee et solution exacte: ' 
+    write(6,*) 'Pour rho: ', normeL2_2(Err_rho, Ns)/normeL2_2(W_ex(1,:),Ns)
+    write(6,*) 'Pour u: ', normeL2_2(Err_u, Ns)/normeL2_2(W_ex(2,:),Ns)
+    write(6,*)
     
     ! on sauvegarde les resultats pour t = T_fin
     call sauvegarde_syst('solution_rho.dat','solution_u.dat', W_O, Ns, x_deb, x_fin)
@@ -111,6 +118,6 @@ program systeme_trafic
     ! on sauvegarde la fonction exacte pour t = T_fin
     call sauvegarde_syst('solution_rho_ex.dat', 'solution_u_ex.dat', W_ex, Ns, x_deb, x_fin)
 
-    deallocate(W_O, W_N, Flux)
+    deallocate(W_O, W_N, Flux, Err_u, Err_rho, W_ex)
 
 end program systeme_trafic
