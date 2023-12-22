@@ -1,7 +1,7 @@
 -5.0 5.0 :: n_deb, n_fin
-10000  :: Ns (nb de cellules)
+50 :: Ns (nb de cellules)
 0.5  :: CFL
-0.3  :: T_fin
+2.1  :: T_fin
 N :: N pour condition de Neumann, D pour condition de Dirichlet, P pour periodique (si on les memes conditions au bord de chaque cote a t = 0). Default: Neumann
-HL :: schema utilise: LF pour Lax-Friedrichs, MR pour Murman-Roe, GD pour Godunov, LW pour Lax-Wendroff, HL pour HLL
-2  :: fonction initiale choisie: 1 => 1 si x<1, 3 si 1<x<2, 2 sinon; 2 => 3 si x<0, 1 si 0<x<1, 2 sinon
+LF :: schema utilise: LF pour Lax-Friedrichs, MR pour Murman-Roe, GD pour Godunov, LW pour Lax-Wendroff, HL pour HLL
+1  :: fonction initiale choisie: 1 => 1 si x<1, 3 si 1<x<2, 2 sinon; 2 => 3 si x<0, 1 si 0<x<1, 2 sinon

@@ -38,9 +38,10 @@ program systeme_trafic
     date = 0._rp
     do while (date < T_fin)
         ! CFL (raccourci u_i^n + rho_i^n*p'(rho_i^n) pour max des valeurs propres)
-        a = W_O(2,1) + W_O(1,1) * p_prime(W_O(1,1), v_max, rho_max)
+        a = abs(W_O(2,1) - W_O(1,1) * p_prime(W_O(1,1), v_max, rho_max))
+        a = max(a,abs(W_O(2,1)))
         do i = 2,Ns
-            a = max(a, W_O(2,i) + W_O(1,i) * p_prime(W_O(1,i), v_max, rho_max))
+            a = max(a, abs(W_O(2,i) - W_O(1,i) * p_prime(W_O(1,i), v_max, rho_max)), abs(W_O(2,i)))
         end do
         dt = dx*CFL/a
         dt = min(dt, T_fin - date)
@@ -109,12 +110,13 @@ program systeme_trafic
 
     write(6,*) 'Nombre d iterations', Nb_iter
     write(6,*)
-    write(6,*) 'Erreurs inf entre solution approchee et solution exacte: ' 
-    write(6,*) 'Pour rho: ', norme_inf_s(Err_rho, Ns)
-    write(6,*) 'Pour u: ', norme_inf_s(Err_u, Ns)
-    write(6,*) 'Erreurs inf des solutions approchees: ' 
-    write(6,*) 'Pour rho: ', norme_inf_s(W_O(1,:), Ns)
-    write(6,*) 'Pour u: ', norme_inf_s(W_O(2,:), Ns)
+    write(6,*) 'Nombre de cellules: ', Ns
+    write(6,*) 'Erreurs L2 entre solution approchee et solution exacte: ' 
+    write(6,*) 'Pour rho: ', norme_L2(Err_rho, Ns)
+    write(6,*) 'Pour u: ', norme_L2(Err_u, Ns)
+    write(6,*) 'Erreurs L2 des solutions approchees: ' 
+    write(6,*) 'Pour rho: ', norme_L2(W_O(1,:), Ns)
+    write(6,*) 'Pour u: ', norme_L2(W_O(2,:), Ns)
     write(6,*)
     
     ! on sauvegarde les resultats pour t = T_fin

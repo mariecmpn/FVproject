@@ -15,7 +15,8 @@ CONTENU DU DOSSIER:
 - donnees.dat: fichier de données d'entrée pour le scalaire (nombre de points de maillage, schéma utilisé, etc)
 - donnees_2d.dat: fichier de données d'entrée pour le système
 - plot.gnu: exemple de script pour les graphiques de la partie scalaire
-- plot_2d.gnu: exemple de script pour les graphiques de la partie système
+- plot_syst.gnu: exemple de script pour les graphiques de la partie système
+- plot_conv.gnu: exemple de script pour les graphiques de convergence
 
 
 REGLES DE COMPILATION:

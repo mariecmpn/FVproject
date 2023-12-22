@@ -323,15 +323,16 @@ module initialisation_sauvegarde_2d
         F_ex(:) = u * W(:) ! on multiplie par u car u est 
     end subroutine F
 
-    real(rp) function norme_inf_s(U, Ns)
+    real(rp) function norme_L2(U, Ns)
         integer :: Ns
         real(rp), dimension(Ns) :: U
         integer :: i
-        norme_inf_s = abs(U(1))
-        do i = 2,Ns
-            norme_inf_s = max(norme_inf_s,abs(U(i)))
+        norme_L2 = 0._rp
+        do i = 1,Ns
+            norme_L2 = norme_L2+U(i)**2
         end do
-    end function norme_inf_s
+        norme_L2 = sqrt(norme_L2)
+    end function norme_L2
 
 
 end module initialisation_sauvegarde_2d
