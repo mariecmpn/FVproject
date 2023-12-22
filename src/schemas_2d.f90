@@ -36,26 +36,26 @@ module schemas_2d
         real(rp) :: v
         integer :: i,j
 
-            !do j = 1,2
-            !    do i = 1,(Ns-1)
-            !        if (U_O(i) > U_O(i+1)) then ! cas d'une detente pour f concave
-            !        if (a_f(U_O(i)) > 0._rp) then
-            !                Flux(i) = f(U_O(i))
-            !            else if (a_f(U_O(i+1)) < 0._rp) then
-            !                Flux(i) = f(U_O(i+1))
-            !            else
-            !                Flux(i) = a_inv(0._rp)
-            !            end if
-            !        else
-            !            v = (f(U_O(i+1)) - f(U_O(i))) / (U_O(i+1) - U_O(i))
-            !            if (v > 0._rp) then
-            !                Flux(i) = f(U_O(i))
-            !            else
-            !                Flux(i) = f(U_O(i+1))
-            !            end if
-            !        end if 
-            !    end do
-            !end do
+
+        !do i = 1,(Ns-1)
+        !    if (U_O(i) > U_O(i+1)) then ! cas d'une detente pour f concave
+        !        if (a_f(U_O(i)) > 0._rp) then
+        !            Flux(i) = f(U_O(i))
+        !        else if (a_f(U_O(i+1)) < 0._rp) then
+        !            Flux(i) = f(U_O(i+1))
+        !        else
+        !            Flux(i) = a_inv(0._rp)
+        !    end if
+            !else
+            !    v = (f(U_O(i+1)) - f(U_O(i))) / (U_O(i+1) - U_O(i))
+            !    if (v > 0._rp) then
+            !        Flux(i) = f(U_O(i))
+            !    else
+            !        Flux(i) = f(U_O(i+1))
+            !    end if
+            !end if 
+        !end do
+
     end subroutine flux_GD_syst
 
     subroutine flux_RS_syst(Ns, Flux, W_O, v_max, rho_max)
@@ -119,6 +119,38 @@ module schemas_2d
                 end if
             end do
         end subroutine flux_HLL_syst
+
+        subroutine flux_MR_syst(Ns, Flux, W_O, v_max, rho_max)
+            ! FLUX POUR SCHEMA DE MURMAN-ROE
+                integer, intent(in) :: Ns
+                real(rp), dimension(2,Ns), intent(inout) :: Flux
+                real(rp), dimension(2,Ns), intent(in) :: W_O
+                real(rp), intent(in) :: v_max, rho_max
+                real(rp) :: c
+                integer :: i,j
+
+
+                !do i = 1,(Ns-1)
+!
+                !    j = 1
+                !    if (W_O(j,i) == W_O(j,i+1)) then
+                !        c = vitesse(W_O, v_max, rho_max)
+                !        c = c*(vitesse(W_O, v_max, rho_max)-W_O(1,i)*p_prime(W_O(1,i),v_max,rho_max))
+                !    else
+                !        c = (f(W_O(j,i+1))- f(W_O(j,i)))/(W_O(j,i+1) - W_O(j,i))
+                !    end if
+
+                !    j = 2
+                !    if (W_O(j,i) == W_O(j,i+1)) then
+                !        c = vitesse(W_O, v_max, rho_max)
+                !        c = c*(vitesse(W_O, v_max, rho_max)-W_O(1,i)*p_prime(W_O(1,i),v_max,rho_max))
+                !    else
+                !        c = (f(W_O(j,i+1))- f(W_O(j,i)))/(W_O(j,i+1) - W_O(j,i))
+                !    end if
+                !    Flux(j,i) = 0.5_rp*(f(W_O(i)) + f(W_O(i+1))) - 0.5_rp*abs(c)*(W_O(i+1) - W_O(i))
+                !end do
+                !end do
+            end subroutine flux_MR_syst
 
 
 end module schemas_2d

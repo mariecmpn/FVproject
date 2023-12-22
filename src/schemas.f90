@@ -6,26 +6,26 @@ module schemas
     contains
 
     subroutine flux_LF(Ns, Flux, U_O, dt, dx)
-    ! FLUX POUR SCHEMA DE LAX-FRIEDRICHS
-        IMPLICIT NONE
-        real(rp), intent(in) :: dt, dx
-        integer, intent(in) :: Ns
-        real(rp), dimension(Ns), intent(inout) :: Flux
-        real(rp), dimension(Ns), intent(in) :: U_O
-        real(rp) :: Delta
-        integer :: i
-
-        ! calcul flux pour Lax-Friedrichs
-        Delta = (dx / dt) * 0.5_rp
-        do i = 1,(Ns-1)
-            Flux(i) = 0.5_rp*(f(U_O(i)) + f(U_O(i+1))) - Delta * (U_O(i+1) - U_O(i))
-        end do
-    end subroutine flux_LF
+        ! FLUX POUR SCHEMA DE LAX-FRIEDRICHS
+            IMPLICIT NONE
+            real(rp), intent(in) :: dt, dx
+            integer, intent(in) :: Ns
+            real(rp), dimension(Ns), intent(out) :: Flux
+            real(rp), dimension(Ns), intent(in) :: U_O
+            real(rp) :: Delta
+            integer :: i
+    
+            ! calcul flux pour Lax-Friedrichs
+            Delta = (dx / dt) * 0.5_rp
+            do i = 1,(Ns-1)
+                Flux(i) = 0.5_rp*(f(U_O(i)) + f(U_O(i+1))) - Delta * (U_O(i+1) - U_O(i))
+            end do
+        end subroutine flux_LF
 
     subroutine flux_MR(Ns, Flux, U_O)
     ! FLUX POUR SCHEMA DE MURMAN-ROE
         integer, intent(in) :: Ns
-        real(rp), dimension(Ns), intent(inout) :: Flux
+        real(rp), dimension(Ns), intent(out) :: Flux
         real(rp), dimension(Ns), intent(in) :: U_O
         real(rp) :: vitesse
         integer :: i
@@ -44,11 +44,10 @@ module schemas
     subroutine flux_GD (Ns, Flux, U_O)
     ! FLUX POUR SCHEMA DE GODUNOV (si f est concave !)
         integer, intent(in) :: Ns
-        real(rp), dimension(Ns), intent(inout) :: Flux
+        real(rp), dimension(Ns), intent(out) :: Flux
         real(rp), dimension(Ns), intent(in) :: U_O
         real(rp) :: vitesse
         integer :: i
-    
         do i = 1,(Ns-1)
             if (U_O(i) > U_O(i+1)) then ! cas d'une detente pour f concave
                 if (a_f(U_O(i)) > 0._rp) then
@@ -73,7 +72,7 @@ module schemas
     ! FLUX POUR SCHEMA LAX-WENDROFF
         real(rp), intent(in) :: dt, dx
         integer, intent(in) :: Ns
-        real(rp), dimension(Ns), intent(inout) :: Flux
+        real(rp), dimension(Ns), intent(out) :: Flux
         real(rp), dimension(Ns), intent(in) :: U_O
         real(rp) :: Delta, coef
         integer :: i
@@ -94,7 +93,7 @@ module schemas
     subroutine flux_HLL(Ns, Flux, U_O)
     ! FLUX POUR SCHEMA HLL
         integer, intent(in) :: Ns
-        real(rp), dimension(Ns), intent(inout) :: Flux
+        real(rp), dimension(Ns), intent(out) :: Flux
         real(rp), dimension(Ns), intent(in) :: U_O
         integer :: i
         real(rp) :: bl, br

@@ -17,8 +17,8 @@ program scalaire_trafic
     character(len = 2) :: schema
     integer :: fonc
     integer :: Nb_iter = 0
-    character(len = 14) :: namefileout
-    character(len = 68) :: commandline
+    !character(len = 14) :: namefileout
+    !character(len = 68) :: commandline
 
     write(6,*) '------------------------------------------'
     write(6,*) '--------- Modele trafic routier ----------'
@@ -36,6 +36,8 @@ program scalaire_trafic
 
     ! initialisation pour t = 0
     call initialisation(U_O, Ns, x_deb, x_fin, fonc)
+
+    write(6,*) 'Norme L2 de la solution initiale: ', normeL2(U_O,Ns)
 
     ! boucle en temps
     date = 0._rp ! on initialise la date a 0
@@ -80,7 +82,6 @@ program scalaire_trafic
             U_N(1) = U_N(2)
             U_N(Ns) = U_N(Ns-1)
         end if
-        
         !mise a jour
         U_O(1:Ns) = U_N(1:Ns)
         ! On compte le nombre d'iterations
@@ -91,27 +92,30 @@ program scalaire_trafic
     do i = 1,Ns
         x = x_deb + i*(x_fin-x_deb)/Ns
         U_ex(i) = sol_ex(x, date, fonc)
-        Err(i) = abs(U_ex(i) - U_O(i))
+        Err(i) = U_ex(i) - U_O(i)
     end do
 
     write(6,*) 'Nombre d iterations', Nb_iter
     write(6,*)
-    write(6,*) 'Erreur L2 relative entre solution approchee et solution exacte: ', normeL2(Err, Ns)/normeL2(U_ex,Ns)
+    write(6,*) 'Nombre de cellules: ', Ns
+    write(6,*) 'pas en x: ', dx
+    write(6,*) 'Erreur L2 entre solution approchee et solution exacte: ', normeL2(Err, Ns)
+    write(6,*) 'Norme L2 de la solution approchee: ', normeL2(U_O,Ns)
     write(6,*)
 
     ! Enregistrement de la solution exacte et de la solution approchee
-    namefileout(1:8) = 'solution'
-    namefileout(9:10) = schema
-    namefileout(11:14) = '.dat'
+    !namefileout(1:8) = 'solution'
+    !namefileout(9:10) = schema
+    !namefileout(11:14) = '.dat'
 
-    write(6,*) 'Sauvegarde dans le fichier: ', namefileout
+    !write(6,*) 'Sauvegarde dans le fichier: ', namefileout
 
-    call sauvegarde(namefileout, U_O, Ns, x_deb, x_fin)
+    call sauvegarde('solution.dat', U_O, Ns, x_deb, x_fin)
     call sauvegarde('solution_ex.dat', U_ex, Ns, x_deb, x_fin)
 
-    commandline(1:13) = "gnuplot plot "
-    commandline(14:27) = namefileout
-    commandline(28:68) = " with lines, 'solution_ex.dat' with lines"
+    !commandline(1:13) = "gnuplot plot "
+    !commandline(14:27) = namefileout
+    !commandline(28:68) = " with lines, 'solution_ex.dat' with lines"
 
     !call execute_command_line(commandline)
 

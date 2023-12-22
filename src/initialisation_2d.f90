@@ -77,7 +77,7 @@ module initialisation_sauvegarde_2d
         real(rp) :: v_max,rho_max ! parametres de la fonction p
         integer :: fonc ! fonction choisie
         real(rp) :: x,t ! coordonnees x en espace et t en temps
-        real(rp) :: sigma, u, rho, ul, ur, rhol, rhor
+        real(rp) :: sigma, u, rho, ul, ur, rhol, rhor, rhoe
 
         if (fonc == 1) then ! fonction choc/contact
             ul = initial_u(-1._rp,1) ! on definit u_L, u_R, rho_L et rho_R
@@ -102,21 +102,24 @@ module initialisation_sauvegarde_2d
             ur = initial_u(1._rp,2)
             rhol = initial_rho(-1._rp,2)
             rhor = initial_rho(1._rp,2)
-            if (x<(ul-2.*(v_max/rho_max)*rhol**2)*t) then ! avant la detente
+            rhoe = sqrt(rhol**2 + (rho_max/v_max)*(ul-ur)) ! rho^*
+            !write(6,*) (ul-rhol*p_prime(rhol,v_max,rho_max))*t
+            !write(6,*) (ur-rhor*p_prime(rhor,v_max,rho_max))*t
+            !write(6,*) x/t
+            !write(6,*)
+            if (x<(ul-rhol*p_prime(rhol,v_max,rho_max))*t) then
                 sol_ex_syst(1) = rhol
                 sol_ex_syst(2) = ul
-            else if (x>=(ul-(2.*v_max/rho_max)*rhol**2)*t .AND. x<(6.*ur-5.*ul-(2.*v_max/rho_max)*rhol**2)*t) then ! dans la detente
-                rho = sqrt(rho_max/(3.*v_max)*(ul-(x/t))+rhol**2/3.)
-                sol_ex_syst(1) = rho
-                sol_ex_syst(2) = ul+(v_max/rho_max)*rho**2-(1./3.)*(ul-(x/t))-(v_max/(3.*rho_max))*rhol**2
-            else if (x>=(6.*ur-5.*ul-(2.*v_max/rho_max)*rhol**2)*t .AND. x<ur*t) then ! entre la detente et le contact
-                rho = sqrt(rhol**2 + rho_max/v_max*(ul-ur))
-                sol_ex_syst(1) = rho
+            else if (x>=(ul-rhol*p_prime(rhol,v_max,rho_max))*t .AND. x<(ur-rhor*p_prime(rhor,v_max,rho_max))*t) then
+                sol_ex_syst(1) = sqrt(rho_max*(ul - x/t)/(3.*v_max)+((rhol)**2)/3.)
+                sol_ex_syst(2) = ul-p(sol_ex_syst(1),v_max,rho_max)+p(rhol,v_max,rho_max)
+            else if (x>=(ur-rhor*p_prime(rhor,v_max,rho_max))*t .AND. x<ur*t) then
+                sol_ex_syst(1) = sqrt(rhol**2 + (rho_max/v_max)*(ul-ur))
                 sol_ex_syst(2) = ur
-            else ! apres le contact
+            else
                 sol_ex_syst(1) = rhor
                 sol_ex_syst(2) = ur
-            end if 
+            end if
         end if 
     end function sol_ex_syst
 
@@ -283,16 +286,17 @@ module initialisation_sauvegarde_2d
 
     real(rp) function lambda_1(W, v_max, rho_max)
         ! fonction pour la valeur propre 1 du systeme
+        ! En variables primitives
         real(rp), dimension(2) :: W
         real(rp) :: v_max, rho_max
         lambda_1 = W(2) - W(1)*p_prime(W(1), v_max, rho_max)
     end function lambda_1
 
 
-    real(rp) function lambda_2(W, v_max, rho_max)
+    real(rp) function lambda_2(W)
         ! fonction pour la valeur propre 1 du systeme
+        ! En variables primitives
         real(rp), dimension(2) :: W 
-        real(rp) :: v_max, rho_max
         lambda_2 = W(2)
     end function lambda_2
 
@@ -319,18 +323,15 @@ module initialisation_sauvegarde_2d
         F_ex(:) = u * W(:) ! on multiplie par u car u est 
     end subroutine F
 
-    real(rp) function normeL2_2(Err, Ns)
-        ! norme L^2 d'un vecteur
+    real(rp) function norme_inf_s(U, Ns)
         integer :: Ns
-        real(rp), dimension(Ns) :: Err
+        real(rp), dimension(Ns) :: U
         integer :: i
-
-        normeL2_2 = 0._rp
-        do i = 1,Ns
-            normeL2_2 = normeL2_2+Err(i)**2
+        norme_inf_s = abs(U(1))
+        do i = 2,Ns
+            norme_inf_s = max(norme_inf_s,abs(U(i)))
         end do
-        normeL2_2 = sqrt(normeL2_2)
-    end function normeL2_2
+    end function norme_inf_s
 
 
 end module initialisation_sauvegarde_2d

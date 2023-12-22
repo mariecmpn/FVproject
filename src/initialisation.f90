@@ -218,15 +218,14 @@ module initialisation_sauvegarde
         a_inv = 0.5_rp*(1-x)
     end function a_inv
 
-    real(rp) function normeL2(Err, Ns)
-        ! norme L^2 d'un vecteur
-        integer :: Ns
-        real(rp), dimension(Ns) :: Err
-        integer :: i
 
+    real(rp) function normeL2(U, Ns)
+        integer :: Ns
+        real(rp), dimension(Ns) :: U
+        integer :: i
         normeL2 = 0._rp
         do i = 1,Ns
-            normeL2 = normeL2+Err(i)**2
+            normeL2 = normeL2+U(i)**2
         end do
         normeL2 = sqrt(normeL2)
     end function normeL2
